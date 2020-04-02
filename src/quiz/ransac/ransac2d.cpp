@@ -73,22 +73,37 @@ std::unordered_set<int> Ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int ma
 		// Randomly sample subset and fit line
 		int index_1 = (rand() % numPoints) + 1;
 		int index_2 = (rand() % numPoints) + 1;
-		if (index_1 == index_2){
-			index_2 = (rand() % numPoints) + 1; // lazy way to make sure we get 2 different pts
+		int index_3 = (rand() % numPoints) + 1;
+		while (index_1 == index_2 || index_2 == index_3 || index_3 == index_1){
+			index_1 = (rand() % numPoints) + 1;
+			index_2 = (rand() % numPoints) + 1; // lazy way to make sure we get 3 different pts
 		}
 		auto pt1 = cloud->points[index_1];
 		auto pt2 = cloud->points[index_2];
-		float A = pt1.y -pt2.y;
-		float B = pt2.x - pt1.x;
-		float C = (pt1.x*pt2.x) - (pt2.x*pt1.y);
+		auto pt3 = cloud->points[index_3];
+
+		Eigen::Vector3d vector1(pt2.x - pt1.x, pt2.y - pt1.y, pt2.z - pt1.z);
+		Eigen::Vector3d vector2(pt3.x - pt1.x, pt3.y - pt1.y, pt3.z - pt1.z);
+
+		Eigen::Vector3d normal_vector;
+		normal_vector = vector1.cross(vector2);
+
+		float A = normal_vector[0];
+		float B = normal_vector[1];
+		float C = normal_vector[2];
+		float D = -(A*pt1.x + B*pt1.y + C*pt1.z);
+
+		
 		float A_squared = std::pow(A,2);
 		float B_squared = std::pow(B,2);
-		float denominator = std::sqrt(A_squared + B_squared);
+		float C_squared = std::pow(C,2);
+		float denominator = std::sqrt(A_squared + B_squared + C_squared);
+
 		// Measure distance between every point and fitted line
 		std::unordered_set<int> inliersCandidate;
 		for (int j = 0; j<numPoints; j++){
 			auto candidatePt = cloud->points[j];
-			float distance = std::abs(A*candidatePt.x + B*candidatePt.y + C) / denominator;
+			float distance = std::abs(A*candidatePt.x + B*candidatePt.y + C*candidatePt.z + D) / denominator;
 			if (distance <= distanceTol){
 				// If distance is smaller than threshold count it as inlier
 				inliersCandidate.insert(j);
