@@ -75,12 +75,41 @@ void render2DTree(Node* node, pcl::visualization::PCLVisualizer::Ptr& viewer, Bo
 
 }
 
+void proximity(const std::vector<std::vector<float>>& points, std::vector<float> point, int index, std::vector<int>& cluster, std::vector<int>& processed_points, KdTree* tree, float distanceTol){
+	processed_points.push_back(index); // marking pt as processed
+	cluster.push_back(index);
+	auto nearby_points = tree->search(point, distanceTol);
+	for (auto nearby_index:nearby_points){
+		std::cout << index << "," << nearby_index << "\n";
+		if (!std::count(processed_points.begin(), processed_points.end(), nearby_index)){ // has to be a better way of doing this
+			// pt at that index not already processed
+			proximity(points, points[nearby_index], nearby_index, cluster, processed_points, tree, distanceTol);
+		}
+	}
+}
+
 std::vector<std::vector<int>> euclideanCluster(const std::vector<std::vector<float>>& points, KdTree* tree, float distanceTol)
 {
 
 	// TODO: Fill out this function to return list of indices for each cluster
 
 	std::vector<std::vector<int>> clusters;
+	std::vector<int> processed_points;
+	int index = 0;
+	while (index < points.size()){
+		// check if processed
+		if (std::count(processed_points.begin(), processed_points.end(), index)){ // has to be a better way of doing this
+			// pt at that index already processed
+			index ++;
+			continue;
+		}
+
+		// new cluster
+		std::vector<int> cluster;
+		proximity(points, points[index], index, cluster, processed_points, tree, distanceTol);
+		clusters.push_back(cluster);
+		index++;
+	}
  
 	return clusters;
 
@@ -133,8 +162,11 @@ int main ()
   	for(std::vector<int> cluster : clusters)
   	{
   		pcl::PointCloud<pcl::PointXYZ>::Ptr clusterCloud(new pcl::PointCloud<pcl::PointXYZ>());
-  		for(int indice: cluster)
-  			clusterCloud->points.push_back(pcl::PointXYZ(points[indice][0],points[indice][1],0));
+		std::cout << "cluster:\n";
+  		for(int indice: cluster){
+			std::cout << indice << "\n\n";
+			clusterCloud->points.push_back(pcl::PointXYZ(points[indice][0],points[indice][1],0));
+		  }
   		renderPointCloud(viewer, clusterCloud,"cluster"+std::to_string(clusterId),colors[clusterId%3]);
   		++clusterId;
   	}

@@ -42,7 +42,7 @@ struct KdTree
 		{
 			int split_dem = depth % 2; // 2D Tree
 			Node **new_node;
-			if (data[split_dem] > (*node)->point[split_dem])
+			if (data[split_dem] >= ((*node)->point[split_dem]))
 			{
 				// greatear than => split right
 				new_node = &((*node)->right);
@@ -54,6 +54,7 @@ struct KdTree
 			}
 			// reduction step
 			recurssive_insert(new_node, depth + 1, data, id);
+			
 		}
 	}
 
@@ -80,11 +81,11 @@ struct KdTree
 					ids.push_back(node->id);
 				}
 			}
-			if (d[split_dem] <= distanceTol)
+			if (d[split_dem] < distanceTol)
 			{
 				recurssive_search(node->left, target, distanceTol, depth + 1, ids);
 			}
-			if (d[split_dem] >= -distanceTol)
+			if (d[split_dem] > -distanceTol)
 			{
 				recurssive_search(node->right, target, distanceTol, depth + 1, ids);
 			}
