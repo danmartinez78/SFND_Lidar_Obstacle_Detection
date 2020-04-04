@@ -28,8 +28,29 @@ struct KdTree
 	void insert(std::vector<float> point, int id)
 	{
 		// TODO: Fill in this function to insert a new point into the tree
-		// the function should create a new node and place correctly with in the root 
+		// the function should create a new node and place correctly with in the root		
+		recurssive_insert(&root, 0, point, id);
+	}
 
+	void recurssive_insert(Node** node, int depth, std::vector<float> data, int id)
+	{
+		if (*node == NULL){
+			*node = new Node(data, id);
+		}
+		else{
+			int split_dem = depth % 2; // 2D Tree
+			Node **new_node;
+			if (data[split_dem] > (*node)->point[split_dem]){
+				// greatear than => split right
+				new_node = &((*node)->right);
+			}
+			else{
+				// greatear than => split left
+				new_node = &((*node)->left);
+			}
+			// reduction step
+			recurssive_insert(new_node, depth+1, data, id);
+		}
 	}
 
 	// return a list of point ids in the tree that are within distance of target
