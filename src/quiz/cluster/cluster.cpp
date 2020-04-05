@@ -80,7 +80,6 @@ void proximity(const std::vector<std::vector<float>>& points, std::vector<float>
 	cluster.push_back(index);
 	auto nearby_points = tree->search(point, distanceTol);
 	for (auto nearby_index:nearby_points){
-		std::cout << index << "," << nearby_index << "\n";
 		if (!std::count(processed_points.begin(), processed_points.end(), nearby_index)){ // has to be a better way of doing this
 			// pt at that index not already processed
 			proximity(points, points[nearby_index], nearby_index, cluster, processed_points, tree, distanceTol);
@@ -90,9 +89,6 @@ void proximity(const std::vector<std::vector<float>>& points, std::vector<float>
 
 std::vector<std::vector<int>> euclideanCluster(const std::vector<std::vector<float>>& points, KdTree* tree, float distanceTol)
 {
-
-	// TODO: Fill out this function to return list of indices for each cluster
-
 	std::vector<std::vector<int>> clusters;
 	std::vector<int> processed_points;
 	int index = 0;
@@ -162,9 +158,7 @@ int main ()
   	for(std::vector<int> cluster : clusters)
   	{
   		pcl::PointCloud<pcl::PointXYZ>::Ptr clusterCloud(new pcl::PointCloud<pcl::PointXYZ>());
-		std::cout << "cluster:\n";
   		for(int indice: cluster){
-			std::cout << indice << "\n\n";
 			clusterCloud->points.push_back(pcl::PointXYZ(points[indice][0],points[indice][1],0));
 		  }
   		renderPointCloud(viewer, clusterCloud,"cluster"+std::to_string(clusterId),colors[clusterId%3]);

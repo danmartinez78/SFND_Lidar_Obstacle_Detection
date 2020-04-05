@@ -76,7 +76,7 @@ struct KdTree
 			float d[2] = {(target[0] - node->point[0]), (target[1] - node->point[1])};
 			if (std::fabs(d[0]) <= distanceTol && std::fabs(d[1]) <= distanceTol)
 			{
-				if (std::sqrt(std::pow(d[0], 2) + std::pow(d[1], 2) <= distanceTol))
+				if (std::sqrt(std::pow(d[0], 2) + std::pow(d[1], 2)) <= distanceTol)
 				{
 					ids.push_back(node->id);
 				}
