@@ -23,7 +23,6 @@ typename pcl::PointCloud<PointT>::Ptr ProcessPointClouds<PointT>::FilterCloud(ty
     // Time segmentation process
     auto startTime = std::chrono::steady_clock::now();
 
-    // TODO:: Fill in the function to do voxel grid point reduction and region based filtering
     pcl::VoxelGrid<PointT> voxel_filter;
     typename pcl::PointCloud<PointT>::Ptr cloud_filtered (new pcl::PointCloud<PointT>);
     voxel_filter.setInputCloud (cloud);
@@ -55,7 +54,7 @@ std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT
 {
     typename pcl::PointCloud<PointT>::Ptr ground_plane (new pcl::PointCloud<PointT> ());
     typename pcl::PointCloud<PointT>::Ptr obstacles (new pcl::PointCloud<PointT> ());
-    pcl::ExtractIndices<pcl::PointXYZ> extract;
+    pcl::ExtractIndices<PointT> extract;
     extract.setInputCloud (cloud);
     extract.setIndices (inliers);
     extract.setNegative (false);
