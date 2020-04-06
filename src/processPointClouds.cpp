@@ -36,8 +36,8 @@ typename pcl::PointCloud<PointT>::Ptr ProcessPointClouds<PointT>::FilterCloud(ty
     box_filter.filter(*cloud_filtered);
 
     pcl::CropBox<PointT> body_filter;
-    body_filter.setMin(Eigen::Vector4f(-2.0, -2.0, -2.0, 1));
-    body_filter.setMax(Eigen::Vector4f(4.0, 2.0, 2.0, 1));
+    body_filter.setMin(Eigen::Vector4f(-2.0, -2.0, -4.0, 1));
+    body_filter.setMax(Eigen::Vector4f(3.0, 2.0, 2.0, 1));
     body_filter.setNegative(true);
     body_filter.setInputCloud(cloud_filtered);
     body_filter.filter(*cloud_filtered);

@@ -64,7 +64,6 @@ pcl::visualization::PCLVisualizer::Ptr initScene()
 std::unordered_set<int> Ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int maxIterations, float distanceTol)
 {
 	std::unordered_set<int> inliersResult;
-	// TODO: Fill in this function
 	srand(time(NULL));
 	int numPoints = cloud->points.size();
 	std::srand(std::time(nullptr));
