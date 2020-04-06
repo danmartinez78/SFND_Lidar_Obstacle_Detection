@@ -36,6 +36,13 @@ typename pcl::PointCloud<PointT>::Ptr ProcessPointClouds<PointT>::FilterCloud(ty
     box_filter.setInputCloud(cloud_filtered);
     box_filter.filter(*cloud_filtered);
 
+    pcl::CropBox<PointT> body_filter;
+    body_filter.setMin(Eigen::Vector4f(-2.0, -2.0, -2.0, 1));
+    body_filter.setMax(Eigen::Vector4f(4.0, 2.0, 2.0, 1));
+    body_filter.setNegative(true);
+    body_filter.setInputCloud(cloud_filtered);
+    body_filter.filter(*cloud_filtered);
+
     auto endTime = std::chrono::steady_clock::now();
     auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
     std::cout << "filtering took " << elapsedTime.count() << " milliseconds" << std::endl;
