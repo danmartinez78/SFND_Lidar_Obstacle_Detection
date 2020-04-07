@@ -192,9 +192,8 @@ std::vector<boost::filesystem::path> ProcessPointClouds<PointT>::streamPcd(std::
     return paths;
 }
 
-
 template <typename PointT>
-std::unordered_set<int> Ransac(typename pcl::PointCloud<PointT>::Ptr cloud, int maxIterations, float distanceTol)
+std::unordered_set<int> ProcessPointClouds<PointT>::Ransac(const typename pcl::PointCloud<PointT>::Ptr cloud, int maxIterations, float distanceTol)
 {
 	std::unordered_set<int> inliersResult;
 	srand(time(NULL));
@@ -252,7 +251,8 @@ std::unordered_set<int> Ransac(typename pcl::PointCloud<PointT>::Ptr cloud, int 
 
 }
 
-void proximity(const std::vector<std::vector<float>>& points, std::vector<float> point, int index, std::vector<int>& cluster, std::vector<int>& processed_points, KdTree* tree, float distanceTol){
+template <typename PointT>
+void ProcessPointClouds<PointT>::proximity(const std::vector<std::vector<float>>& points, std::vector<float> point, int index, std::vector<int>& cluster, std::vector<int>& processed_points, KdTree* tree, float distanceTol){
 	processed_points.push_back(index); // marking pt as processed
 	cluster.push_back(index);
 	auto nearby_points = tree->search(point, distanceTol);
@@ -264,7 +264,8 @@ void proximity(const std::vector<std::vector<float>>& points, std::vector<float>
 	}
 }
 
-std::vector<std::vector<int>> euclideanCluster(const std::vector<std::vector<float>>& points, KdTree* tree, float distanceTol)
+template <typename PointT>
+std::vector<std::vector<int>> ProcessPointClouds<PointT>::euclideanCluster(const std::vector<std::vector<float>>& points, KdTree* tree, float distanceTol)
 {
 	std::vector<std::vector<int>> clusters;
 	std::vector<int> processed_points;

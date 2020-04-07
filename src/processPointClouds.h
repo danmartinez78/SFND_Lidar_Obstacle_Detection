@@ -1,4 +1,4 @@
-// PCL lib Functions for processing point clouds 
+// PCL lib Functions for processing point clouds
 
 #ifndef PROCESSPOINTCLOUDS_H_
 #define PROCESSPOINTCLOUDS_H_
@@ -12,8 +12,8 @@
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/segmentation/extract_clusters.h>
 #include <pcl/common/transforms.h>
-#include <iostream> 
-#include <string>  
+#include <iostream>
+#include <string>
 #include <vector>
 #include <ctime>
 #include <chrono>
@@ -21,10 +21,10 @@
 #include <unordered_set>
 #include "kdtree.h"
 
-template<typename PointT>
-class ProcessPointClouds {
+template <typename PointT>
+class ProcessPointClouds
+{
 public:
-
     //constructor
     ProcessPointClouds();
     //deconstructor
@@ -50,11 +50,98 @@ public:
 
     std::unordered_set<int> Ransac(typename pcl::PointCloud<PointT>::Ptr cloud, int maxIterations, float distanceTol);
 
-    KdTree tree;
+    struct Node
+    {
+        std::vector<float> point;
+        int id;
+        Node *left;
+        Node *right;
 
-    void proximity(const std::vector<std::vector<float>>& points, std::vector<float> point, int index, std::vector<int>& cluster, std::vector<int>& processed_points, KdTree* tree, float distanceTol);
+        Node(std::vector<float> arr, int setId)
+            : point(arr), id(setId), left(NULL), right(NULL)
+        {
+        }
+    };
 
-    std::vector<std::vector<int>> euclideanCluster(const std::vector<std::vector<float>>& points, KdTree* tree, float distanceTol);
+    struct KdTree
+    {
+        Node *root;
 
+        KdTree()
+            : root(NULL)
+        {
+        }
+
+        void insert(std::vector<float> point, int id)
+        {
+            // the function should create a new node and place correctly with in the root
+            recurssive_insert(&root, 0, point, id);
+        }
+
+        void recurssive_insert(Node **node, int depth, std::vector<float> data, int id)
+        {
+            if (*node == NULL)
+            {
+                *node = new Node(data, id);
+            }
+            else
+            {
+                int split_dem = depth % 2; // 2D Tree
+                Node **new_node;
+                if (data[split_dem] >= ((*node)->point[split_dem]))
+                {
+                    // greatear than => split right
+                    new_node = &((*node)->right);
+                }
+                else
+                {
+                    // less than => split left
+                    new_node = &((*node)->left);
+                }
+                // reduction step
+                recurssive_insert(new_node, depth + 1, data, id);
+            }
+        }
+
+        // return a list of point ids in the tree that are within distance of target
+        std::vector<int> search(std::vector<float> target, float distanceTol)
+        {
+            std::vector<int> ids;
+            // start at root
+            recurssive_search(root, target, distanceTol, 0, ids);
+            return ids;
+        }
+
+        void recurssive_search(Node *node, std::vector<float> target, float distanceTol, int depth, std::vector<int> &ids)
+        {
+            int split_dem = depth % 2; // 2D Tree
+            if (node != NULL)
+            {
+                // check if passed node is within tol along both directions
+                float d[2] = {(target[0] - node->point[0]), (target[1] - node->point[1])};
+                if (std::fabs(d[0]) <= distanceTol && std::fabs(d[1]) <= distanceTol)
+                {
+                    if (std::sqrt(std::pow(d[0], 2) + std::pow(d[1], 2)) <= distanceTol)
+                    {
+                        ids.push_back(node->id);
+                    }
+                }
+                if (d[split_dem] < distanceTol)
+                {
+                    recurssive_search(node->left, target, distanceTol, depth + 1, ids);
+                }
+                if (d[split_dem] > -distanceTol)
+                {
+                    recurssive_search(node->right, target, distanceTol, depth + 1, ids);
+                }
+            }
+        }
+    };
+
+    KdTree *tree = new KdTree;
+
+    void proximity(const std::vector<std::vector<float>> &points, std::vector<float> point, int index, std::vector<int> &cluster, std::vector<int> &processed_points, KdTree *tree, float distanceTol);
+
+    std::vector<std::vector<int>> euclideanCluster(const std::vector<std::vector<float>> &points, KdTree *tree, float distanceTol);
 };
 #endif /* PROCESSPOINTCLOUDS_H_ */

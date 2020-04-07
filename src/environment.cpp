@@ -135,18 +135,30 @@ void myCityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer, ProcessPointClo
 
     // voxel filter using pcl
     auto filterCloud = pointProcessorI->FilterCloud(inputCloud, .2 , Eigen::Vector4f (-20, -5, -2, 1), Eigen::Vector4f ( 35, 7, 1, 1));
+    // get inliers indices for ground plane using my plane model RANSAC
+    std::unordered_set<int> inlier_indices = pointProcessorI->Ransac(filterCloud, 25, 0.3);
+    // create 2 clouds, inliers and outliers 
+    pcl::PointCloud<pcl::PointXYZI>::Ptr inlier_cloud (new pcl::PointCloud<pcl::PointXYZI>);
+    pcl::PointCloud<pcl::PointXYZI>::Ptr outlier_cloud (new pcl::PointCloud<pcl::PointXYZI>);
 
-    // get inliers indices for ground plane
-    std::pair<pcl::PointCloud<pcl::PointXYZI>::Ptr, pcl::PointCloud<pcl::PointXYZI>::Ptr> segmentCloud = pointProcessorI->SegmentPlane(filterCloud, 25, 0.3);
-    // create 2 clouds, inliers and outliers using my plane model RANSAC
+    // better way than iterating?????
+    for (int i=0;i<filterCloud->points.size();i++){
+        if(inlier_indices.find(i) != inlier_indices.end()){
+            // part of ground plane
+            inlier_cloud->points.push_back(filterCloud->points[i]);
+        }else{
+            // not part of ground plane
+            outlier_cloud->points.push_back(filterCloud->points[i]);
+        }
+    }
 
     // render inliers (ground plane)
-    renderPointCloud(viewer,segmentCloud.second,"groundPlane");
+    renderPointCloud(viewer,inlier_cloud,"groundPlane", Color(0,1,0));
     // render outliers (likely objects)
-    renderPointCloud(viewer,segmentCloud.first,"everythingElse");
+    renderPointCloud(viewer,outlier_cloud,"everythingElse");
 
     // cluster using my euclidian clustering with my kd tree, returns indices
-    std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> cloudClusters = pointProcessorI->Clustering(segmentCloud.first, 0.53, 10, 500);
+    std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> cloudClusters = pointProcessorI->Clustering(outlier_cloud, 0.53, 10, 500);
     
     // cluster indices to pcl type for rendering
 
@@ -187,7 +199,7 @@ int main(int argc, char **argv)
 
         // Load pcd and run obstacle detection process
         inputCloudI = pointProcessorI->loadPcd((*streamIterator).string());
-        cityBlock(viewer, pointProcessorI, inputCloudI);
+        myCityBlock(viewer, pointProcessorI, inputCloudI);
 
         streamIterator++;
         if(streamIterator == stream.end())
