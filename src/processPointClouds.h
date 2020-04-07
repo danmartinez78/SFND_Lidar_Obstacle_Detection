@@ -19,7 +19,6 @@
 #include <chrono>
 #include "render/box.h"
 #include <unordered_set>
-#include "kdtree.h"
 
 template <typename PointT>
 class ProcessPointClouds
@@ -52,12 +51,12 @@ public:
 
     struct Node
     {
-        std::vector<float> point;
+        PointT point;
         int id;
         Node *left;
         Node *right;
 
-        Node(std::vector<float> arr, int setId)
+        Node(PointT arr, int setId)
             : point(arr), id(setId), left(NULL), right(NULL)
         {
         }
@@ -72,13 +71,13 @@ public:
         {
         }
 
-        void insert(std::vector<float> point, int id)
+        void insert(PointT point, int id)
         {
             // the function should create a new node and place correctly with in the root
             recurssive_insert(&root, 0, point, id);
         }
 
-        void recurssive_insert(Node **node, int depth, std::vector<float> data, int id)
+        void recurssive_insert(Node **node, int depth, PointT data, int id)
         {
             if (*node == NULL)
             {
@@ -104,7 +103,7 @@ public:
         }
 
         // return a list of point ids in the tree that are within distance of target
-        std::vector<int> search(std::vector<float> target, float distanceTol)
+        std::vector<int> search(PointT target, float distanceTol)
         {
             std::vector<int> ids;
             // start at root
@@ -112,7 +111,7 @@ public:
             return ids;
         }
 
-        void recurssive_search(Node *node, std::vector<float> target, float distanceTol, int depth, std::vector<int> &ids)
+        void recurssive_search(Node *node, PointT target, float distanceTol, int depth, std::vector<int> &ids)
         {
             int split_dem = depth % 2; // 2D Tree
             if (node != NULL)
@@ -138,10 +137,10 @@ public:
         }
     };
 
-    KdTree *tree = new KdTree;
+    KdTree *tree;
 
-    void proximity(const std::vector<std::vector<float>> &points, std::vector<float> point, int index, std::vector<int> &cluster, std::vector<int> &processed_points, KdTree *tree, float distanceTol);
+    void proximity(const std::vector<PointT> &points, PointT point, int index, std::vector<int> &cluster, std::vector<int> &processed_points, KdTree *tree, float distanceTol);
 
-    std::vector<std::vector<int>> euclideanCluster(const std::vector<std::vector<float>> &points, KdTree *tree, float distanceTol);
+    std::vector<std::vector<int>> euclideanCluster(const std::vector<PointT> &points, KdTree *tree, float distanceTol);
 };
 #endif /* PROCESSPOINTCLOUDS_H_ */
