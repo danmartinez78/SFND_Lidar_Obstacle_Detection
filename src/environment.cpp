@@ -127,6 +127,44 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer, ProcessPointCloud
     }
 }
 
+void myCityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer, ProcessPointClouds<pcl::PointXYZI>* pointProcessorI, const pcl::PointCloud<pcl::PointXYZI>::Ptr& inputCloud)
+{
+    // ----------------------------------------------------
+    // -----Open 3D viewer and display City Block     -----
+    // ----------------------------------------------------
+
+    // voxel filter using pcl
+    auto filterCloud = pointProcessorI->FilterCloud(inputCloud, .2 , Eigen::Vector4f (-20, -5, -2, 1), Eigen::Vector4f ( 35, 7, 1, 1));
+
+    // get inliers indices for ground plane
+    std::pair<pcl::PointCloud<pcl::PointXYZI>::Ptr, pcl::PointCloud<pcl::PointXYZI>::Ptr> segmentCloud = pointProcessorI->SegmentPlane(filterCloud, 25, 0.3);
+    // create 2 clouds, inliers and outliers using my plane model RANSAC
+
+    // render inliers (ground plane)
+    renderPointCloud(viewer,segmentCloud.second,"groundPlane");
+    // render outliers (likely objects)
+    renderPointCloud(viewer,segmentCloud.first,"everythingElse");
+
+    // cluster using my euclidian clustering with my kd tree, returns indices
+    std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> cloudClusters = pointProcessorI->Clustering(segmentCloud.first, 0.53, 10, 500);
+    
+    // cluster indices to pcl type for rendering
+
+    int clusterId = 0;
+    std::vector<Color> colors = {Color(1, 0, 0), Color(0, 1, 0), Color(0, 0, 1)};
+
+    // render clusters and BB
+    for (pcl::PointCloud<pcl::PointXYZI>::Ptr cluster : cloudClusters)
+    {
+        std::cout << "cluster size ";
+        pointProcessorI->numPoints(cluster);
+        renderPointCloud(viewer, cluster, "obstCloud" + std::to_string(clusterId), colors[clusterId]);
+        Box box = pointProcessorI->BoundingBox(cluster);
+        renderBox(viewer, box, clusterId);
+        ++clusterId;
+    }
+}
+
 int main(int argc, char **argv)
 {
     std::cout << "starting enviroment" << std::endl;

@@ -18,6 +18,8 @@
 #include <ctime>
 #include <chrono>
 #include "render/box.h"
+#include <unordered_set>
+#include "kdtree.h"
 
 template<typename PointT>
 class ProcessPointClouds {
@@ -45,6 +47,14 @@ public:
     typename pcl::PointCloud<PointT>::Ptr loadPcd(std::string file);
 
     std::vector<boost::filesystem::path> streamPcd(std::string dataPath);
-  
+
+    std::unordered_set<int> Ransac(typename pcl::PointCloud<PointT>::Ptr cloud, int maxIterations, float distanceTol);
+
+    KdTree tree;
+
+    void proximity(const std::vector<std::vector<float>>& points, std::vector<float> point, int index, std::vector<int>& cluster, std::vector<int>& processed_points, KdTree* tree, float distanceTol);
+
+    std::vector<std::vector<int>> euclideanCluster(const std::vector<std::vector<float>>& points, KdTree* tree, float distanceTol);
+
 };
 #endif /* PROCESSPOINTCLOUDS_H_ */
