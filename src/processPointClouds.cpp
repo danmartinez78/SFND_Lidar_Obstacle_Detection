@@ -255,7 +255,7 @@ std::unordered_set<int> ProcessPointClouds<PointT>::Ransac(const typename pcl::P
 }
 
 template <typename PointT>
-void ProcessPointClouds<PointT>::proximity(const std::vector<PointT> &points, PointT point, int index, std::vector<int> &cluster, std::vector<int> &processed_points, KdTree *tree, float distanceTol)
+void ProcessPointClouds<PointT>::proximity(const typename pcl::PointCloud<PointT>::Ptr cloud, PointT point, int index, std::vector<int> &cluster, std::vector<int> &processed_points, KdTree *tree, float distanceTol)
 {
     processed_points.push_back(index); // marking pt as processed
     cluster.push_back(index);
@@ -265,18 +265,18 @@ void ProcessPointClouds<PointT>::proximity(const std::vector<PointT> &points, Po
         if (!std::count(processed_points.begin(), processed_points.end(), nearby_index))
         { // has to be a better way of doing this
             // pt at that index not already processed
-            proximity(points, points[nearby_index], nearby_index, cluster, processed_points, tree, distanceTol);
+            proximity(cloud, cloud->points[nearby_index], nearby_index, cluster, processed_points, tree, distanceTol);
         }
     }
 }
 
 template <typename PointT>
-std::vector<std::vector<int>> ProcessPointClouds<PointT>::euclideanCluster(const std::vector<PointT> &points, KdTree *tree, float distanceTol)
+std::vector<std::vector<int>> ProcessPointClouds<PointT>::euclideanCluster(const typename pcl::PointCloud<PointT>::Ptr cloud, KdTree *tree, float distanceTol)
 {
     std::vector<std::vector<int>> clusters;
     std::vector<int> processed_points;
     int index = 0;
-    while (index < points.size())
+    while (index < cloud->points.size())
     {
         // check if processed
         if (std::count(processed_points.begin(), processed_points.end(), index))
@@ -288,7 +288,7 @@ std::vector<std::vector<int>> ProcessPointClouds<PointT>::euclideanCluster(const
 
         // new cluster
         std::vector<int> cluster;
-        proximity(points, points[index], index, cluster, processed_points, tree, distanceTol);
+        proximity(cloud, cloud->points[index], index, cluster, processed_points, tree, distanceTol);
         clusters.push_back(cluster);
         index++;
     }

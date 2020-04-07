@@ -77,17 +77,29 @@ public:
             recurssive_insert(&root, 0, point, id);
         }
 
-        void recurssive_insert(Node **node, int depth, PointT data, int id)
+        void recurssive_insert(Node **node, int depth, PointT point, int id)
         {
             if (*node == NULL)
             {
-                *node = new Node(data, id);
+                *node = new Node(point, id);
             }
             else
             {
-                int split_dem = depth % 2; // 2D Tree
+                int split_dem = depth % 3; // 2D Tree
                 Node **new_node;
-                if (data[split_dem] >= ((*node)->point[split_dem]))
+                bool right = false;
+                if (split_dem == 0){
+                    // split on x
+                    right = point.x > (*node)->point.x;
+                }else if(split_dem == 1){
+                    // split on y
+                    right = point.y > (*node)->point.y;
+                }else{
+                    // split on z
+                    right = point.z > (*node)->point.z;
+                }
+                
+                if (right)
                 {
                     // greatear than => split right
                     new_node = &((*node)->right);
@@ -98,7 +110,7 @@ public:
                     new_node = &((*node)->left);
                 }
                 // reduction step
-                recurssive_insert(new_node, depth + 1, data, id);
+                recurssive_insert(new_node, depth + 1, point, id);
             }
         }
 
@@ -113,14 +125,14 @@ public:
 
         void recurssive_search(Node *node, PointT target, float distanceTol, int depth, std::vector<int> &ids)
         {
-            int split_dem = depth % 2; // 2D Tree
+            int split_dem = depth % 3; // 2D Tree
             if (node != NULL)
             {
                 // check if passed node is within tol along both directions
-                float d[2] = {(target[0] - node->point[0]), (target[1] - node->point[1])};
-                if (std::fabs(d[0]) <= distanceTol && std::fabs(d[1]) <= distanceTol)
+                float d[3] = {(target.x - node->point.x), (target.y - node->point.y), (target.z - node->point.z)};
+                if (std::fabs(d[0]) <= distanceTol && std::fabs(d[1]) <= distanceTol && std::fabs(d[2]) <= distanceTol)
                 {
-                    if (std::sqrt(std::pow(d[0], 2) + std::pow(d[1], 2)) <= distanceTol)
+                    if (std::sqrt(std::pow(d[0], 2) + std::pow(d[1], 2) + std::pow(d[2], 2)) <= distanceTol)
                     {
                         ids.push_back(node->id);
                     }
@@ -137,10 +149,12 @@ public:
         }
     };
 
-    KdTree *tree;
+    KdTree *tree = new KdTree;
 
-    void proximity(const std::vector<PointT> &points, PointT point, int index, std::vector<int> &cluster, std::vector<int> &processed_points, KdTree *tree, float distanceTol);
+    void resetTree(){ delete tree;  KdTree *tree = new KdTree;}
 
-    std::vector<std::vector<int>> euclideanCluster(const std::vector<PointT> &points, KdTree *tree, float distanceTol);
+    void proximity(const typename pcl::PointCloud<PointT>::Ptr cloud, PointT point, int index, std::vector<int> &cluster, std::vector<int> &processed_points, KdTree *tree, float distanceTol);
+
+    std::vector<std::vector<int>> euclideanCluster(const typename pcl::PointCloud<PointT>::Ptr cloud, KdTree *tree, float distanceTol);
 };
 #endif /* PROCESSPOINTCLOUDS_H_ */
