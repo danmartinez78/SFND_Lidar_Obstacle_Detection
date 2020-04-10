@@ -159,16 +159,16 @@ void myCityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer, ProcessPointClo
 
     // cluster using my euclidian clustering with my kd tree, returns indices
     // create kd tree
-    pointProcessorI->resetTree();
+    typename ProcessPointClouds<pcl::PointXYZI>::KdTree tree;
     int index = 0;
     for (auto point:outlier_cloud->points){
         //convert to vector?
-        pointProcessorI->tree->insert(point, index);
+        tree.insert(point, index);
         index++;
     }
 
     // cluster
-    std::vector<std::vector<int>> clusters = pointProcessorI->euclideanCluster(outlier_cloud, pointProcessorI->tree, 0.47);
+    std::vector<std::vector<int>> clusters = pointProcessorI->euclideanCluster(outlier_cloud, &tree, 0.47);
     
     // create clouds from clustered indices to pcl type for rendering
     std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> cloudClusters;

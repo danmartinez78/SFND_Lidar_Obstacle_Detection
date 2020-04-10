@@ -149,10 +149,6 @@ public:
         }
     };
 
-    KdTree *tree = new KdTree;
-
-    void resetTree(){ delete tree;  KdTree *tree = new KdTree;}
-
     void proximity(const typename pcl::PointCloud<PointT>::Ptr cloud, PointT point, int index, std::vector<int> &cluster, std::vector<int> &processed_points, KdTree *tree, float distanceTol);
 
     std::vector<std::vector<int>> euclideanCluster(const typename pcl::PointCloud<PointT>::Ptr cloud, KdTree *tree, float distanceTol);

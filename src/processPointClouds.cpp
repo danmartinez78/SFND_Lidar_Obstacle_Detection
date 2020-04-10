@@ -271,7 +271,7 @@ void ProcessPointClouds<PointT>::proximity(const typename pcl::PointCloud<PointT
 }
 
 template <typename PointT>
-std::vector<std::vector<int>> ProcessPointClouds<PointT>::euclideanCluster(const typename pcl::PointCloud<PointT>::Ptr cloud, KdTree *tree, float distanceTol)
+std::vector<std::vector<int>> ProcessPointClouds<PointT>::euclideanCluster(const typename pcl::PointCloud<PointT>::Ptr cloud, typename ProcessPointClouds<PointT>::KdTree *tree, float distanceTol)
 {
     std::vector<std::vector<int>> clusters;
     std::vector<int> processed_points;
